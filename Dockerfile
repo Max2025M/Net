@@ -1,16 +1,25 @@
-# Base Ubuntu
 FROM ubuntu:22.04
 
-# Instala WireGuard
+# Instalar dependências
 RUN apt-get update && \
-    apt-get install -y wireguard iproute2 iptables curl && \
+    apt-get install -y wget iproute2 iptables golang-go && \
     apt-get clean
 
-# Copia o arquivo de configuração do servidor
+# Instalar wireguard-tools (wg, wg-quick)
+RUN apt-get update && \
+    apt-get install -y wireguard-tools && \
+    apt-get clean
+
+# Baixar e compilar wireguard-go (modo userspace)
+RUN go install golang.zx2c4.com/wireguard/wgctrl@latest && \
+    go install golang.zx2c4.com/wireguard/wireguard-go@latest && \
+    mv /root/go/bin/wireguard-go /usr/local/bin/
+
+# Copiar configuração
 COPY wg0.conf /etc/wireguard/wg0.conf
 
-# Expor a porta UDP do WireGuard
+# Expor porta UDP do WireGuard
 EXPOSE 51820/udp
 
-# Iniciar WireGuard automaticamente
-CMD ["wg-quick", "up", "wg0"]
+# Rodar em modo userspace
+CMD ["wireguard-go", "wg0"]

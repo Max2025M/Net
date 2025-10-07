@@ -1,25 +1,20 @@
-FROM ubuntu:22.04
+FROM debian:12-slim
 
-# Instalar dependências
-RUN apt-get update && \
-    apt-get install -y wget iproute2 iptables golang-go && \
-    apt-get clean
+# Instalar pacotes necessários
+RUN apt-get update && apt-get install -y curl ca-certificates unzip && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instalar wireguard-tools (wg, wg-quick)
-RUN apt-get update && \
-    apt-get install -y wireguard-tools && \
-    apt-get clean
+# Baixar Xray-core e instalar
+RUN mkdir -p /usr/local/bin/xray
+RUN curl -L -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip && \
+    unzip /tmp/xray.zip -d /usr/local/bin/xray && \
+    mv /usr/local/bin/xray/xray /usr/local/bin/xray-core && \
+    rm -rf /tmp/xray.zip
 
-# Baixar e compilar wireguard-go (modo userspace)
-RUN go install golang.zx2c4.com/wireguard/wgctrl@latest && \
-    go install golang.zx2c4.com/wireguard/wireguard-go@latest && \
-    mv /root/go/bin/wireguard-go /usr/local/bin/
+# Criar diretório de configuração
+RUN mkdir -p /etc/xray
 
-# Copiar configuração
-COPY wg0.conf /etc/wireguard/wg0.conf
+COPY config.json /etc/xray/config.json
 
-# Expor porta UDP do WireGuard
-EXPOSE 51820/udp
+EXPOSE 80/tcp
 
-# Rodar em modo userspace
-CMD ["wireguard-go", "wg0"]
+CMD ["/usr/local/bin/xray-core", "-config", "/etc/xray/config.json"]

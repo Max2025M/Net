@@ -19,9 +19,10 @@
         "decryption": "none"
       },
       "streamSettings": {
-        "network": "ws",
-        "wsSettings": {
-          "path": "/ray"
+        "network": "h2",
+        "httpSettings": {
+          "path": "/ray",
+          "host": ["*"]
         }
       }
     }

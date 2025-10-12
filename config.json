@@ -4,8 +4,8 @@
   },
   "inbounds": [
     {
-      "port": 10081,
-      "listen": "127.0.0.1",
+      "port": 10000,
+      "listen": "0.0.0.0",
       "protocol": "vless",
       "settings": {
         "clients": [
@@ -13,7 +13,8 @@
             "id": "e82f9344-496d-4d98-ba41-09b4e317862d",
             "flow": "xtls-rprx-vision",
             "level": 0,
-            "email": "user@example.com"
+            "email": "user@example.com",
+            "password": "123456"
           }
         ],
         "decryption": "none"

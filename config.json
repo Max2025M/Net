@@ -1,39 +1,33 @@
 {
-  "log": {
-    "loglevel": "warning"
-  },
-  "inbounds": [
-    {
-      "port": 80,
-      "listen": "0.0.0.0",
-      "protocol": "vless",
-      "settings": {
-        "clients": [
-          {
-            "id": "e82f9344-496d-4d98-ba41-09b4e317862d",
-            "level": 0,
-            "email": "user@example.com"
-          }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "xhttp",
-        "xhttpSettings": {
-          "path": "/ray",
-          "host": "*",
-          "streamSecurity": "none",
-          "serviceName": "stream-one",
-          "maxHeaderSize": 16384,
-          "padding": true
-        }
-      }
-    }
-  ],
   "outbounds": [
     {
       "protocol": "freedom",
       "settings": {}
+    }
+  ],
+  "inbounds": [
+    {
+      "port": 0,
+      "listen": "127.0.0.1",
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true
+      }
+    }
+  ],
+  "configs": [
+    {
+      "name": "Xray Render",
+      "type": "vless",
+      "server": "net-itkn.onrender.com",
+      "port": 80,
+      "uuid": "e82f9344-496d-4d98-ba41-09b4e317862d",
+      "flow": "xtls-rprx-vision",
+      "network": "xhttp",
+      "path": "/ray",
+      "host": "*",
+      "tls": "none"
     }
   ]
 }

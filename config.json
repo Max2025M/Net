@@ -21,7 +21,7 @@
         "network": "xhttp",
         "xhttpSettings": {
           "path": "/ray",
-          "host": ["*"],
+          "host": "*",
           "streamSecurity": "none",
           "serviceName": "stream-one",
           "maxHeaderSize": 16384,

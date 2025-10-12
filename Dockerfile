@@ -1,8 +1,10 @@
-FROM debian:12-slim
+FROM debian:12
 
-# Instalar pacotes necessários
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl unzip netcat ca-certificates \
+# Corrigir possíveis repositórios quebrados e instalar pacotes necessários
+RUN sed -i 's|deb.debian.org|deb.debian.org|g' /etc/apt/sources.list \
+    && apt-get clean \
+    && apt-get update --fix-missing \
+    && apt-get install -y --no-install-recommends curl unzip netcat-traditional ca-certificates \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -21,5 +23,5 @@ COPY config.json /etc/xray/config.json
 # Expor porta necessária para o Render detectar o serviço
 EXPOSE 8080
 
-# Iniciar Xray e manter porta 8080 aberta para o Render detectar o serviço ativo
+# Iniciar Xray e manter a porta 8080 ativa para o Render detectar o serviço
 CMD ["sh", "-c", "/usr/local/bin/xray-core -config /etc/xray/config.json & while true; do nc -lk -p 8080 -e echo 'Servidor ativo'; done"]

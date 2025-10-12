@@ -1,37 +1,30 @@
-{
+}{
   "log": {
-    "loglevel": "warning"
+    "access": "/dev/stdout",
+    "error": "/dev/stderr",
+    "loglevel": "debug"
   },
   "inbounds": [
     {
-      "port": 10000,
-      "listen": "0.0.0.0",
-      "protocol": "vless",
+      "port": 443,
+      "protocol": "vmess",
       "settings": {
         "clients": [
           {
             "id": "e82f9344-496d-4d98-ba41-09b4e317862d",
-            "flow": "xtls-rprx-vision",
-            "level": 0,
-            "email": "user@example.com",
-            "password": "123456"
+            "alterId": 0
           }
-        ],
-        "decryption": "none"
+        ]
       },
       "streamSettings": {
-        "network": "xhttp",
-        "xhttpSettings": {
-          "path": "/ray",
-          "host": "net-itkn.onrender.com"
-        }
+        "network": "tcp"
       }
     }
   ],
   "outbounds": [
     {
-      "protocol": "freedom",
-      "settings": {}
+      "protocol": "freedom"
     }
   ]
 }
+

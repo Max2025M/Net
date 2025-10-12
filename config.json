@@ -11,7 +11,6 @@
         "clients": [
           {
             "id": "e82f9344-496d-4d98-ba41-09b4e317862d",
-            "flow": "xtls-rprx-vision",
             "level": 0,
             "email": "user@example.com"
           }
@@ -19,10 +18,14 @@
         "decryption": "none"
       },
       "streamSettings": {
-        "network": "h2",
-        "httpSettings": {
+        "network": "xhttp",
+        "xhttpSettings": {
           "path": "/ray",
-          "host": ["*"]
+          "host": ["*"],
+          "streamSecurity": "none",
+          "serviceName": "stream-one",
+          "maxHeaderSize": 16384,
+          "padding": true
         }
       }
     }

@@ -1,0 +1,8 @@
+net-itkn.onrender.com {
+  route /ray* {
+    basicauth {
+      usuario 123456
+    }
+    reverse_proxy 127.0.0.1:10081
+  }
+}

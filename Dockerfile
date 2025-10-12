@@ -3,7 +3,7 @@ FROM debian:12-slim
 # Instalar pacotes necessários
 RUN apt-get update && apt-get install -y curl ca-certificates unzip && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Baixar Xray-core e instalar
+# Baixar e instalar Xray-core
 RUN mkdir -p /usr/local/bin/xray
 RUN curl -L -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip && \
     unzip /tmp/xray.zip -d /usr/local/bin/xray && \
@@ -12,9 +12,10 @@ RUN curl -L -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/d
 
 # Criar diretório de configuração
 RUN mkdir -p /etc/xray
-
 COPY config.json /etc/xray/config.json
 
-EXPOSE 80/tcp
+# Expor porta dinâmica do Render
+EXPOSE 10000
 
-CMD ["/usr/local/bin/xray-core", "-config", "/etc/xray/config.json"]
+# Substituir porta no config.json pela porta do Render e iniciar o Xray
+CMD ["sh", "-c", "sed -i 's/\"port\": 0/\"port\": '$PORT'/g' /etc/xray/config.json && /usr/local/bin/xray-core -config /etc/xray/config.json"]

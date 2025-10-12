@@ -14,8 +14,8 @@ RUN curl -L -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/d
 RUN mkdir -p /etc/xray
 COPY config.json /etc/xray/config.json
 
-# Expor porta dinâmica do Render
-EXPOSE 10000
+# Expor porta interna do Xray (só acessível pelo proxy)
+EXPOSE 10081
 
-# Substituir porta no config.json pela porta do Render e iniciar o Xray
-CMD ["sh", "-c", "sed -i 's/\"port\": 0/\"port\": '$PORT'/g' /etc/xray/config.json && /usr/local/bin/xray-core -config /etc/xray/config.json"]
+# Iniciar Xray
+CMD ["sh", "-c", "/usr/local/bin/xray-core -config /etc/xray/config.json"]

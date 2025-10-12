@@ -1,7 +1,7 @@
 FROM debian:12-slim
 
 # Instalar pacotes necessários
-RUN apt-get update && apt-get install -y curl ca-certificates unzip && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl ca-certificates unzip netcat && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Baixar e instalar Xray-core
 RUN mkdir -p /usr/local/bin/xray
@@ -14,8 +14,8 @@ RUN curl -L -o /tmp/xray.zip https://github.com/XTLS/Xray-core/releases/latest/d
 RUN mkdir -p /etc/xray
 COPY config.json /etc/xray/config.json
 
-# Expor porta interna do Xray (só acessível pelo proxy)
-EXPOSE 10081
+# Expor porta necessária para o Render detectar o serviço
+EXPOSE 8080
 
-# Iniciar Xray
-CMD ["sh", "-c", "/usr/local/bin/xray-core -config /etc/xray/config.json"]
+# Iniciar Xray e manter porta 8080 aberta para o Render detectar o serviço ativo
+CMD ["sh", "-c", "/usr/local/bin/xray-core -config /etc/xray/config.json & while true; do nc -lk -p 8080 -e echo 'Servidor ativo'; done"]

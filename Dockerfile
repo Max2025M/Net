@@ -7,5 +7,5 @@ COPY config.json /etc/xray/config.json
 EXPOSE 443/tcp
 EXPOSE 443/udp
 
-# Start do Xray em modo debug (stdout)
-CMD ["xray", "-config", "/etc/xray/config.json", "-format", "console", "-loglevel", "debug"]
+# Start do Xray normalmente (log configurado no config.json)
+CMD ["xray", "-config", "/etc/xray/config.json"]

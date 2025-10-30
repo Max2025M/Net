@@ -1,11 +1,8 @@
-FROM teddysun/xray:latest
-
-# Copia a configuração
-COPY config.json /etc/xray/config.json
-
-# Expõe a porta TCP/UDP
-EXPOSE 443/tcp
-EXPOSE 443/udp
-
-# Start do Xray normalmente (logs configurados no config.json)
-CMD ["xray", "-config", "/etc/xray/config.json"]
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json .
+COPY server.js .
+COPY index.html .
+RUN npm install
+EXPOSE 5000
+CMD ["npm", "start"]

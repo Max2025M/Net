@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Extrator WhatsApp Inteligente</title>
+<style>
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #007bff, #00bcd4);
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.container {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 550px;
+  text-align: center;
+}
+h1 {
+  color: #007bff;
+  margin-bottom: 10px;
+}
+p {
+  color: #666;
+  font-size: 14px;
+}
+input[type=file] {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+}
+button {
+  margin-top: 15px;
+  background: #007bff;
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  background: #0056b3;
+}
+textarea {
+  width: 100%;
+  margin-top: 15px;
+  height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+}
+#loader {
+  display: none;
+  margin-top: 20px;
+  color: #007bff;
+  font-weight: bold;
+}
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-top: 15px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+#error {
+  color: red;
+  margin-top: 10px;
+  font-weight: bold;
+  display: none;
+}
+#ocrSection {
+  display: none;
+  margin-top: 15px;
+  text-align: left;
+}
+#ocrSection pre {
+  background: #f7f7f7;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  max-height: 200px;
+  overflow: auto;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>📸 Extrator de Números WhatsApp</h1>
+    <p>Envie um print e o sistema extrairá apenas números moçambicanos (sem +258).</p>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="image" accept="image/*" required />
+      <button type="submit">Enviar e Extrair</button>
+    </form>
+
+    <div id="loader">
+      <div class="spinner"></div><br />
+      <span>Processando imagem...</span>
+    </div>
+
+    <div id="error"></div>
+
+    <div id="result" style="display:none;">
+      <h3>Números encontrados:</h3>
+      <textarea id="numbers" readonly></textarea>
+      <button id="copyBtn">📋 Copiar</button>
+    </div>
+
+    <div id="ocrSection">
+      <h4>🧠 Texto OCR reconhecido (debug):</h4>
+      <pre id="ocrText"></pre>
+    </div>
+  </div>
+
+  <script>
+  const form = document.getElementById('uploadForm');
+  const loader = document.getElementById('loader');
+  const resultDiv = document.getElementById('result');
+  const errorDiv = document.getElementById('error');
+  const ocrSection = document.getElementById('ocrSection');
+  const ocrText = document.getElementById('ocrText');
+  const numbersField = document.getElementById('numbers');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loader.style.display = 'block';
+    resultDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    ocrSection.style.display = 'none';
+    
+    const data = new FormData(form);
+    
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: data });
+      const json = await res.json();
+      loader.style.display = 'none';
+      
+      if (json.error) {
+        errorDiv.style.display = 'block';
+        errorDiv.textContent = json.error;
+        if (json.ocrText) {
+          ocrSection.style.display = 'block';
+          ocrText.textContent = json.ocrText;
+        }
+        return;
+      }
+      
+      numbersField.value = json.numbers || 'Nenhum número encontrado.';
+      resultDiv.style.display = 'block';
+      if (json.ocrText) {
+        ocrSection.style.display = 'block';
+        ocrText.textContent = json.ocrText;
+      }
+    } catch (err) {
+      loader.style.display = 'none';
+      errorDiv.style.display = 'block';
+      errorDiv.textContent = 'Erro ao conectar ao servidor.';
+    }
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(numbersField.value);
+      alert('📋 Copiado!');
+    } catch {
+      alert('Falha ao copiar!');
+    }
+  });
+  </script>
+</body>
+</html>

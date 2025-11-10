@@ -24,25 +24,40 @@ function extractMozNumbers(text) {
   return [...new Set(cleaned)];
 }
 
-// Endpoint de upload e OCR
-app.post("/upload", upload.single("image"), async (req, res) => {
-  if (!req.file) return res.json({ error: "Nenhuma imagem enviada." });
+// OCR múltiplo
+app.post("/upload", upload.array("images", 20), async (req, res) => {
+  if (!req.files || req.files.length === 0)
+    return res.json({ error: "Nenhuma imagem enviada." });
 
   const worker = await createWorker("eng+por");
-  try {
-    const { data: { text } } = await worker.recognize(req.file.path);
-    await worker.terminate();
-    fs.unlinkSync(req.file.path);
+  let allNumbers = [];
+  let progress = [];
 
-    const numbers = extractMozNumbers(text);
-    if (!numbers.length)
-      return res.json({ error: "Nenhum número válido encontrado.", ocrText: text });
+  for (let i = 0; i < req.files.length; i++) {
+    const file = req.files[i];
+    try {
+      const { data: { text } } = await worker.recognize(file.path);
+      fs.unlinkSync(file.path);
 
-    res.json({ numbers: numbers.join(","), ocrText: text });
-  } catch (err) {
-    console.error("Erro no OCR:", err);
-    res.json({ error: "Erro ao processar imagem." });
+      const numbers = extractMozNumbers(text);
+      allNumbers.push(...numbers);
+      progress.push({
+        imageIndex: i + 1,
+        total: req.files.length,
+        found: numbers.length,
+      });
+    } catch (err) {
+      console.error("Erro no OCR:", err);
+    }
   }
+
+  await worker.terminate();
+
+  res.json({
+    numbers: [...new Set(allNumbers)],
+    totalImages: req.files.length,
+    progress,
+  });
 });
 
 const PORT = process.env.PORT || 5000;

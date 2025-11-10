@@ -58,21 +58,33 @@ textarea {
   border-radius: 6px;
   padding: 8px;
 }
-#loader {
+#popup {
   display: none;
-  margin-top: 20px;
-  color: #007bff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 18px;
   font-weight: bold;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  z-index: 1000;
+}
+#popup span {
+  margin-top: 10px;
 }
 .spinner {
   display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #007bff;
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-left-color: #00e5ff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-top: 15px;
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -83,35 +95,16 @@ textarea {
   font-weight: bold;
   display: none;
 }
-#ocrSection {
-  display: none;
-  margin-top: 15px;
-  text-align: left;
-}
-#ocrSection pre {
-  background: #f7f7f7;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  max-height: 200px;
-  overflow: auto;
-  font-size: 13px;
-}
 </style>
 </head>
 <body>
   <div class="container">
     <h1>📸 Extrator de Números WhatsApp</h1>
-    <p>Envie um print e o sistema extrairá apenas números moçambicanos (sem +258).</p>
+    <p>Envie múltiplas imagens e o sistema extrairá números moçambicanos válidos.</p>
     <form id="uploadForm" enctype="multipart/form-data">
-      <input type="file" name="image" accept="image/*" required />
+      <input type="file" name="images" accept="image/*" multiple required />
       <button type="submit">Enviar e Extrair</button>
     </form>
-
-    <div id="loader">
-      <div class="spinner"></div><br />
-      <span>Processando imagem...</span>
-    </div>
 
     <div id="error"></div>
 
@@ -120,54 +113,57 @@ textarea {
       <textarea id="numbers" readonly></textarea>
       <button id="copyBtn">📋 Copiar</button>
     </div>
+  </div>
 
-    <div id="ocrSection">
-      <h4>🧠 Texto OCR reconhecido (debug):</h4>
-      <pre id="ocrText"></pre>
-    </div>
+  <div id="popup">
+    <div class="spinner"></div>
+    <span id="progressText">Extraindo imagem 1 de N</span>
   </div>
 
   <script>
   const form = document.getElementById('uploadForm');
-  const loader = document.getElementById('loader');
+  const popup = document.getElementById('popup');
+  const progressText = document.getElementById('progressText');
   const resultDiv = document.getElementById('result');
   const errorDiv = document.getElementById('error');
-  const ocrSection = document.getElementById('ocrSection');
-  const ocrText = document.getElementById('ocrText');
   const numbersField = document.getElementById('numbers');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    loader.style.display = 'block';
-    resultDiv.style.display = 'none';
+    popup.style.display = 'flex';
     errorDiv.style.display = 'none';
-    ocrSection.style.display = 'none';
-    
+    resultDiv.style.display = 'none';
+    numbersField.value = "";
+
     const data = new FormData(form);
-    
+    const files = form.querySelector('input[type=file]').files;
+    const totalImages = files.length;
+
+    progressText.textContent = `Extraindo imagem 1 de ${totalImages}...`;
+
     try {
       const res = await fetch('/upload', { method: 'POST', body: data });
       const json = await res.json();
-      loader.style.display = 'none';
-      
+
       if (json.error) {
+        popup.style.display = 'none';
         errorDiv.style.display = 'block';
         errorDiv.textContent = json.error;
-        if (json.ocrText) {
-          ocrSection.style.display = 'block';
-          ocrText.textContent = json.ocrText;
-        }
         return;
       }
-      
-      numbersField.value = json.numbers || 'Nenhum número encontrado.';
-      resultDiv.style.display = 'block';
-      if (json.ocrText) {
-        ocrSection.style.display = 'block';
-        ocrText.textContent = json.ocrText;
+
+      // Atualizar progresso dinamicamente conforme servidor processa
+      for (let i = 0; i < json.progress.length; i++) {
+        const p = json.progress[i];
+        progressText.textContent = `Extraindo imagem ${p.imageIndex} de ${p.total} (${p.found} encontrados)`;
+        await new Promise(r => setTimeout(r, 500)); // simulação de tempo
       }
+
+      popup.style.display = 'none';
+      numbersField.value = json.numbers.join(", ") || 'Nenhum número encontrado.';
+      resultDiv.style.display = 'block';
     } catch (err) {
-      loader.style.display = 'none';
+      popup.style.display = 'none';
       errorDiv.style.display = 'block';
       errorDiv.textContent = 'Erro ao conectar ao servidor.';
     }
